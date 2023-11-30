@@ -1,0 +1,40 @@
+---
+title: "gReatmigRation"
+author: "Sean Kiah, Baylie Larsen, Blake Prall, Hannah Sutoris"
+date: "2023-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rgbif)
+library(tidyverse)
+library(MuMIn)
+library(rnoaa)
+library(data.table)
+library(ggmap)
+library(usmap)
+library(magick)
+library(cowplot)
+library(lme4)
+library(car)
+```
+
+(the 5 birds i chose at random)
+Blue-winged Warbler
+Baltimore Oriole
+Purple Martin
+Olive-sided Flycatcher
+Black-billed Cuckoo
+
+```{r, echo=FALSE}
+species <- c("Vermivora cyanoptera", "Icterus galbula", "Progne subis", "Contopus cooperi", "Coccyzus erythropthalmus")
+```
+
+
+
+```{r, echo=FALSE}
+
+```
+
+
