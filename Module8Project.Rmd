@@ -5,6 +5,15 @@ date: "2023-11-30"
 output: html_document
 ---
 
+##Introduction
+
+
+##Methods
+
+
+##Results
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(rgbif)
@@ -28,9 +37,9 @@ Olive-sided Flycatcher
 Black-billed Cuckoo
 
 ```{r, echo=FALSE}
-species <- c("Vermivora cyanoptera", "Icterus galbula", "Myiarchus crinitus", "Contopus cooperi", "Coccyzus erythropthalmus")
-y <- paste0("1990",",","2019")
-m <- paste0("3",",","6")
+species <- c("Icterus galbula", "Vermivora cyanoptera", "Myiarchus crinitus", "Contopus cooperi", "Coccyzus erythropthalmus")
+y <- paste0("2000",",","2019")
+m <- paste0("4",",","5")
 dat.l <-list()
 
 for(s in species){
@@ -56,7 +65,122 @@ head(dat)
 
 
 ```{r, echo=FALSE}
+saveRDS(data,"massbird.data.RDS")
+
+dat%>%
+  group_by(year,species)%>%
+  summarise(count=sum(individualCount,na.rm = T))%>%
+  ggplot(aes(x=year,y=count,col=species))+geom_point()
+
+options(noaakey = "GemgcypRGxXkwpqKtKzsVrRwZhuSpzka")
+
+bos <- ncdc_stations(stationid = "GHCND:USW00014739")
+print(bos)
+
+sta.d <- bind_rows(
+  lapply(sts,function(x) ncdc_stations(stationid = x)$data ) 
+  )%>%
+  mutate(usmap_transform(.,input_names = c("longitude","latitude"),output_names = c("longitude.1", "latitude.1")))%>% 
+  mutate(name=str_sub(name, -5,-4))%>%
+  mutate(migr.day=c(10,5,0))%>% 
+  separate(id,into = c("station.type","id"))%>%
+        print()
+
+plot_usmap(
+  include = c(.northeast_region,.south_region,.east_north_central)
+)+geom_point(data=sta.d,aes(x=longitude.1,y=latitude.1,col=name),size=5)+geom_label(data=sta.d,aes(x=longitude.1,y=latitude.1,col=name,label=name),size=5,nudge_x = 1e6*0.25)+theme(legend.position = "none")
+
+weather.d <- meteo_pull_monitors(sta.d$id,date_min = "2000-01-01")
+head(weather.d)
 
 ```
 
+```{r, echo=FALSE}
+mc<- dat%>%
+  filter(species=="Setophaga caerulescens")%>%
+  group_by(year)%>%
+  mutate(date=as.Date(paste0(year,"-",month,"-",day)),
+         j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01")))
+  )%>%
+  group_by(species,year,j.day,date)%>%
+  summarise(day.tot=sum(individualCount,na.rm=T))%>%
+  group_by(species,year)%>%
+  mutate(prop=cumsum(day.tot/sum(day.tot,na.rm = T)))%>%
+  filter(year>1999)
+         
+mc%>%
+  ggplot(aes(j.day,prop))+geom_point()+facet_wrap(year~.)
+mc.pred <- mc%>%
+  group_by(year)%>%
+ summarize(
+   pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
+   j.day=min(j.day):max(j.day),
+  )%>%
+  left_join(mc%>%dplyr::select(j.day,date))
 
+mc%>%
+  ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
+
+mc.arrive.date <-mc.pred%>%
+  group_by(year)%>%
+  filter(j.day==j.day[which.min(abs(pred-0.25))])
+
+mc.arrive.date%>%
+  ggplot(aes(year,j.day))+geom_point()
+
+weather.d <- weather.d%>%
+  mutate(year=as.integer(str_sub(date,1,4)), 
+         date=as.Date(date))%>%
+  group_by(year)%>% 
+ mutate(j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01"))), 
+  date2=date,
+  wdir.rad=(180-abs(wdf2-180))*pi/180,
+  wvec=cos(wdir.rad)*-1*awnd 
+  )%>% 
+  dplyr::select(id,year,date2,j.day,tmin,tmax,wvec)%>% 
+  left_join(sta.d%>%select(id,name,migr.day))%>% 
+  mutate(j.day=j.day+migr.day)
+
+mc.arr.weath <- mc.arrive.date%>%
+  left_join(weather.d)%>%
+  left_join(mc%>%dplyr::select(year,date,j.day))
+head(mc.arr.weath)
+
+weather.wk <-weather.d %>% 
+  group_by(year,name) %>% 
+  mutate(wk.tmin = frollmean(tmin, n=14,align="right"),
+         wk.tmax = frollmean(tmax, n=14,align="right"),
+         wk.wvec = frollmean(wvec, n=14,align="right")
+         )%>%
+  dplyr::select(j.day,date2,name,wk.tmin,wk.tmax,wk.wvec)
+
+mc.arr.weath2 <- mc.arrive.date%>%
+  left_join(weather.wk)
+head(mc.arr.weath2)
+```
+
+```{r, echo=FALSE}
+mc.lmer <- lmer(j.day~tmin*tmax*wvec+(1|name),mc.arr.weath,na.action = "na.fail")
+Anova(mc.lmer)
+
+mc.lmer2 <- lmer(j.day~wk.tmin*wk.tmax*wk.wvec+(1|name),mc.arr.weath2,na.action = "na.fail")
+Anova(mc.lmer2)
+
+mc.arr.aic <- dredge(mc.lmer2,fixed = c("wk.tmin","wk.tmax","wk.wvec"),)
+mc.kb <- kable(mc.arr.aic[1:4,],caption = "Fit values for nested models of the most complicated lme model")
+kable_styling(mc.kb)
+
+best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),mc.arr.weath2,na.action = "na.fail")
+Anova(best.lmer)
+```
+
+##Discussion
+
+
+##Author Contributions
+Sean-
+Hannah-
+Blake-
+Baylie-
+
+##References
