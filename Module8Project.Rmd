@@ -119,13 +119,13 @@ ig<- dat%>%
          
 ig%>%
   ggplot(aes(j.day,prop))+geom_point()+facet_wrap(year~.)
-ig.pred <- mc%>%
+ig.pred <- ig%>%
   group_by(year)%>%
  summarize(
    pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
    j.day=min(j.day):max(j.day),
   )%>%
-  left_join(mc%>%dplyr::select(j.day,date))
+  left_join(ig%>%dplyr::select(j.day,date))
 
 ig%>%
   ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
@@ -159,7 +159,7 @@ vc.pred <- vc%>%
    pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
    j.day=min(j.day):max(j.day),
   )%>%
-  left_join(mc%>%dplyr::select(j.day,date))
+  left_join(vc%>%dplyr::select(j.day,date))
 
 vc%>%
   ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
@@ -228,7 +228,7 @@ cc.pred <- cc%>%
    pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
    j.day=min(j.day):max(j.day),
   )%>%
-  left_join(mc%>%dplyr::select(j.day,date))
+  left_join(cc%>%dplyr::select(j.day,date))
 
 cc%>%
   ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
@@ -263,7 +263,7 @@ ce.pred <- ce%>%
    pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
    j.day=min(j.day):max(j.day),
   )%>%
-  left_join(mc%>%dplyr::select(j.day,date))
+  left_join(ce%>%dplyr::select(j.day,date))
 
 ce%>%
   ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
@@ -296,7 +296,7 @@ weather.d <- weather.d%>%
 #mean arrival time for Icterus galbula
 ig.arr.weath <- ig.arrive.date%>%
   left_join(weather.d)%>%
-  left_join(mc%>%dplyr::select(year,date,j.day))
+  left_join(ig%>%dplyr::select(year,date,j.day))
 head(ig.arr.weath)
 
 weather.wk <-weather.d %>% 
@@ -315,7 +315,7 @@ head(ig.arr.weath2)
 #mean arrival time for Vermivora cyanoptera
 vc.arr.weath <- vc.arrive.date%>%
   left_join(weather.d)%>%
-  left_join(mc%>%dplyr::select(year,date,j.day))
+  left_join(vc%>%dplyr::select(year,date,j.day))
 head(vc.arr.weath)
 
 weather.wk <-weather.d %>% 
