@@ -27,6 +27,9 @@ library(magick)
 library(cowplot)
 library(lme4)
 library(car)
+library(sf)
+library(knitr)
+library(kableExtra)
 ```
 
 (the 5 birds i chose at random)
@@ -102,8 +105,9 @@ head(weather.d)
 ```
 
 ```{r, echo=FALSE}
-mc<- dat%>%
-  filter(species=="Setophaga caerulescens")%>%
+#for Icterus galbula
+ig<- dat%>%
+  filter(species=="Icterus galbula")%>%
   group_by(year)%>%
   mutate(date=as.Date(paste0(year,"-",month,"-",day)),
          j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01")))
@@ -111,8 +115,75 @@ mc<- dat%>%
   group_by(species,year,j.day,date)%>%
   summarise(day.tot=sum(individualCount,na.rm=T))%>%
   group_by(species,year)%>%
-  mutate(prop=cumsum(day.tot/sum(day.tot,na.rm = T)))%>%
-  filter(year>1999)
+  mutate(prop=cumsum(day.tot/sum(day.tot,na.rm = T)))
+         
+ig%>%
+  ggplot(aes(j.day,prop))+geom_point()+facet_wrap(year~.)
+ig.pred <- mc%>%
+  group_by(year)%>%
+ summarize(
+   pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
+   j.day=min(j.day):max(j.day),
+  )%>%
+  left_join(mc%>%dplyr::select(j.day,date))
+
+ig%>%
+  ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
+
+ig.arrive.date <-ig.pred%>%
+  group_by(year)%>%
+  filter(j.day==j.day[which.min(abs(pred-0.25))])
+
+ig.arrive.date%>%
+  ggplot(aes(year,j.day))+geom_point()
+
+```
+```{r, echo=FALSE}
+#for Vermivora cyanoptera
+vc<- dat%>%
+  filter(species=="Vermivora cyanoptera")%>%
+  group_by(year)%>%
+  mutate(date=as.Date(paste0(year,"-",month,"-",day)),
+         j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01")))
+  )%>%
+  group_by(species,year,j.day,date)%>%
+  summarise(day.tot=sum(individualCount,na.rm=T))%>%
+  group_by(species,year)%>%
+  mutate(prop=cumsum(day.tot/sum(day.tot,na.rm = T)))
+         
+vc%>%
+  ggplot(aes(j.day,prop))+geom_point()+facet_wrap(year~.)
+vc.pred <- vc%>%
+  group_by(year)%>%
+ summarize(
+   pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
+   j.day=min(j.day):max(j.day),
+  )%>%
+  left_join(mc%>%dplyr::select(j.day,date))
+
+vc%>%
+  ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
+
+vc.arrive.date <-vc.pred%>%
+  group_by(year)%>%
+  filter(j.day==j.day[which.min(abs(pred-0.25))])
+
+vc.arrive.date%>%
+  ggplot(aes(year,j.day))+geom_point()
+
+```
+```{r, echo=FALSE}
+#for Myiarchus crinitus
+mc<- dat%>%
+  filter(species=="Myiarchus crinitus")%>%
+  group_by(year)%>%
+  mutate(date=as.Date(paste0(year,"-",month,"-",day)),
+         j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01")))
+  )%>%
+  group_by(species,year,j.day,date)%>%
+  summarise(day.tot=sum(individualCount,na.rm=T))%>%
+  group_by(species,year)%>%
+  mutate(prop=cumsum(day.tot/sum(day.tot,na.rm = T)))
          
 mc%>%
   ggplot(aes(j.day,prop))+geom_point()+facet_wrap(year~.)
@@ -134,19 +205,133 @@ mc.arrive.date <-mc.pred%>%
 mc.arrive.date%>%
   ggplot(aes(year,j.day))+geom_point()
 
+```
+
+```{r, echo=FALSE}
+#for Contopus cooperi
+cc<- dat%>%
+  filter(species=="Contopus cooperi")%>%
+  group_by(year)%>%
+  mutate(date=as.Date(paste0(year,"-",month,"-",day)),
+         j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01")))
+  )%>%
+  group_by(species,year,j.day,date)%>%
+  summarise(day.tot=sum(individualCount,na.rm=T))%>%
+  group_by(species,year)%>%
+  mutate(prop=cumsum(day.tot/sum(day.tot,na.rm = T)))
+         
+cc%>%
+  ggplot(aes(j.day,prop))+geom_point()+facet_wrap(year~.)
+cc.pred <- cc%>%
+  group_by(year)%>%
+ summarize(
+   pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
+   j.day=min(j.day):max(j.day),
+  )%>%
+  left_join(mc%>%dplyr::select(j.day,date))
+
+cc%>%
+  ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
+
+cc.arrive.date <-cc.pred%>%
+  group_by(year)%>%
+  filter(j.day==j.day[which.min(abs(pred-0.25))])
+
+cc.arrive.date%>%
+  ggplot(aes(year,j.day))+geom_point()
+
+```
+
+```{r, echo=FALSE}
+#for Coccyzus erythropthalmus
+ce<- dat%>%
+  filter(species=="Coccyzus erythropthalmus")%>%
+  group_by(year)%>%
+  mutate(date=as.Date(paste0(year,"-",month,"-",day)),
+         j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01")))
+  )%>%
+  group_by(species,year,j.day,date)%>%
+  summarise(day.tot=sum(individualCount,na.rm=T))%>%
+  group_by(species,year)%>%
+  mutate(prop=cumsum(day.tot/sum(day.tot,na.rm = T)))
+         
+ce%>%
+  ggplot(aes(j.day,prop))+geom_point()+facet_wrap(year~.)
+ce.pred <- ce%>%
+  group_by(year)%>%
+ summarize(
+   pred=predict(nls(prop~SSlogis(j.day,Asym, xmid, scal)),newdata=data.frame(j.day=min(j.day):max(j.day))),
+   j.day=min(j.day):max(j.day),
+  )%>%
+  left_join(mc%>%dplyr::select(j.day,date))
+
+ce%>%
+  ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
+
+ce.arrive.date <-ce.pred%>%
+  group_by(year)%>%
+  filter(j.day==j.day[which.min(abs(pred-0.25))])
+
+ce.arrive.date%>%
+  ggplot(aes(year,j.day))+geom_point()
+```
+
+
+```{r, echo=FALSE}
 weather.d <- weather.d%>%
   mutate(year=as.integer(str_sub(date,1,4)), 
          date=as.Date(date))%>%
   group_by(year)%>% 
  mutate(j.day=julian(date,origin=as.Date(paste0(unique(year),"-01-01"))), 
   date2=date,
-  wdir.rad=(180-abs(wdf2-180))*pi/180,
+  wdir.rad=(180-abs(wdf2-180))*pi/180, 
   wvec=cos(wdir.rad)*-1*awnd 
   )%>% 
   dplyr::select(id,year,date2,j.day,tmin,tmax,wvec)%>% 
   left_join(sta.d%>%select(id,name,migr.day))%>% 
   mutate(j.day=j.day+migr.day)
 
+```
+```{r, echo=FALSE}
+#mean arrival time for Icterus galbula
+ig.arr.weath <- ig.arrive.date%>%
+  left_join(weather.d)%>%
+  left_join(mc%>%dplyr::select(year,date,j.day))
+head(ig.arr.weath)
+
+weather.wk <-weather.d %>% 
+  group_by(year,name) %>% 
+  mutate(wk.tmin = frollmean(tmin, n=14,align="right"),
+         wk.tmax = frollmean(tmax, n=14,align="right"),
+         wk.wvec = frollmean(wvec, n=14,align="right")
+         )%>%
+  dplyr::select(j.day,date2,name,wk.tmin,wk.tmax,wk.wvec)
+
+ig.arr.weath2 <- ig.arrive.date%>%
+  left_join(weather.wk)
+head(ig.arr.weath2)
+```
+```{r, echo=FALSE}
+#mean arrival time for Vermivora cyanoptera
+vc.arr.weath <- vc.arrive.date%>%
+  left_join(weather.d)%>%
+  left_join(mc%>%dplyr::select(year,date,j.day))
+head(vc.arr.weath)
+
+weather.wk <-weather.d %>% 
+  group_by(year,name) %>% 
+  mutate(wk.tmin = frollmean(tmin, n=14,align="right"),
+         wk.tmax = frollmean(tmax, n=14,align="right"),
+         wk.wvec = frollmean(wvec, n=14,align="right")
+         )%>%
+  dplyr::select(j.day,date2,name,wk.tmin,wk.tmax,wk.wvec)
+
+vc.arr.weath2 <- vc.arrive.date%>%
+  left_join(weather.wk)
+head(vc.arr.weath2)
+```
+```{r, echo=FALSE}
+#mean arrival time for Myiarchus crinitus
 mc.arr.weath <- mc.arrive.date%>%
   left_join(weather.d)%>%
   left_join(mc%>%dplyr::select(year,date,j.day))
@@ -164,8 +349,81 @@ mc.arr.weath2 <- mc.arrive.date%>%
   left_join(weather.wk)
 head(mc.arr.weath2)
 ```
+```{r, echo=FALSE}
+#mean arrival time for Contopus cooperi
+cc.arr.weath <- cc.arrive.date%>%
+  left_join(weather.d)%>%
+  left_join(cc%>%dplyr::select(year,date,j.day))
+head(cc.arr.weath)
+
+weather.wk <-weather.d %>% 
+  group_by(year,name) %>% 
+  mutate(wk.tmin = frollmean(tmin, n=14,align="right"),
+         wk.tmax = frollmean(tmax, n=14,align="right"),
+         wk.wvec = frollmean(wvec, n=14,align="right")
+         )%>%
+  dplyr::select(j.day,date2,name,wk.tmin,wk.tmax,wk.wvec)
+
+cc.arr.weath2 <- cc.arrive.date%>%
+  left_join(weather.wk)
+head(cc.arr.weath2)
+```
 
 ```{r, echo=FALSE}
+#mean arrival time for Coccyzus erythropthalmus
+ce.arr.weath <- ce.arrive.date%>%
+  left_join(weather.d)%>%
+  left_join(ce%>%dplyr::select(year,date,j.day))
+head(ce.arr.weath)
+
+weather.wk <-weather.d %>% 
+  group_by(year,name) %>% 
+  mutate(wk.tmin = frollmean(tmin, n=14,align="right"),
+         wk.tmax = frollmean(tmax, n=14,align="right"),
+         wk.wvec = frollmean(wvec, n=14,align="right")
+         )%>%
+  dplyr::select(j.day,date2,name,wk.tmin,wk.tmax,wk.wvec)
+
+ce.arr.weath2 <- ce.arrive.date%>%
+  left_join(weather.wk)
+head(ce.arr.weath2)
+```
+
+
+```{r, echo=FALSE}
+#linear mixed effect for Icterus galbula
+ig.lmer <- lmer(j.day~tmin*tmax*wvec+(1|name),ig.arr.weath,na.action = "na.fail")
+Anova(ig.lmer)
+
+ig.lmer2 <- lmer(j.day~wk.tmin*wk.tmax*wk.wvec+(1|name),ig.arr.weath2,na.action = "na.fail")
+Anova(ig.lmer2)
+
+ig.arr.aic <- dredge(ig.lmer2,fixed = c("wk.tmin","wk.tmax","wk.wvec"),)
+ig.kb <- kable(ig.arr.aic[1:4,],caption = "Fit values for nested models of the most complicated lme model")
+kable_styling(ig.kb)
+
+best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),ig.arr.weath2,na.action = "na.fail")
+Anova(best.lmer)
+```
+
+```{r, echo=FALSE}
+#linear mixed effect for Vermivora cyanoptera
+vc.lmer <- lmer(j.day~tmin*tmax*wvec+(1|name),vc.arr.weath,na.action = "na.fail")
+Anova(vc.lmer)
+
+vc.lmer2 <- lmer(j.day~wk.tmin*wk.tmax*wk.wvec+(1|name),vc.arr.weath2,na.action = "na.fail")
+Anova(vc.lmer2)
+
+vc.arr.aic <- dredge(vc.lmer2,fixed = c("wk.tmin","wk.tmax","wk.wvec"),)
+vc.kb <- kable(vc.arr.aic[1:4,],caption = "Fit values for nested models of the most complicated lme model")
+kable_styling(vc.kb)
+
+best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),vc.arr.weath2,na.action = "na.fail")
+Anova(best.lmer)
+```
+
+```{r, echo=FALSE}
+#linear mixed effect for Myiarchus crinitus
 mc.lmer <- lmer(j.day~tmin*tmax*wvec+(1|name),mc.arr.weath,na.action = "na.fail")
 Anova(mc.lmer)
 
@@ -177,6 +435,38 @@ mc.kb <- kable(mc.arr.aic[1:4,],caption = "Fit values for nested models of the m
 kable_styling(mc.kb)
 
 best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),mc.arr.weath2,na.action = "na.fail")
+Anova(best.lmer)
+```
+
+```{r, echo=FALSE}
+#linear mixed effect for Contopus cooperi
+cc.lmer <- lmer(j.day~tmin*tmax*wvec+(1|name),cc.arr.weath,na.action = "na.fail")
+Anova(cc.lmer)
+
+cc.lmer2 <- lmer(j.day~wk.tmin*wk.tmax*wk.wvec+(1|name),cc.arr.weath2,na.action = "na.fail")
+Anova(cc.lmer2)
+
+cc.arr.aic <- dredge(cc.lmer2,fixed = c("wk.tmin","wk.tmax","wk.wvec"),)
+cc.kb <- kable(cc.arr.aic[1:4,],caption = "Fit values for nested models of the most complicated lme model")
+kable_styling(cc.kb)
+
+best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),cc.arr.weath2,na.action = "na.fail")
+Anova(best.lmer)
+```
+
+```{r, echo=FALSE}
+#linear mixed effect for Coccyzus erythropthalmus
+ce.lmer <- lmer(j.day~tmin*tmax*wvec+(1|name),ce.arr.weath,na.action = "na.fail")
+Anova(ce.lmer)
+
+ce.lmer2 <- lmer(j.day~wk.tmin*wk.tmax*wk.wvec+(1|name),ce.arr.weath2,na.action = "na.fail")
+Anova(ce.lmer2)
+
+ce.arr.aic <- dredge(ce.lmer2,fixed = c("wk.tmin","wk.tmax","wk.wvec"),)
+ce.kb <- kable(ce.arr.aic[1:4,],caption = "Fit values for nested models of the most complicated lme model")
+kable_styling(ce.kb)
+
+best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),ce.arr.weath2,na.action = "na.fail")
 Anova(best.lmer)
 ```
 
