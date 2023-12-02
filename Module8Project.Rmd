@@ -3,6 +3,7 @@ title: "gReatmigRation"
 author: "Sean Kiah, Baylie Larsen, Blake Prall, Hannah Sutoris"
 date: "2023-11-30"
 output: html_document
+bibliography: Biol3140.bib
 ---
 
 ##Introduction
@@ -195,7 +196,13 @@ best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),species_count.arr.weat
 Anova(best.lmer)
 ```
 
+## Introduction
 
+In this project, Global Biodiversity Information Facility data is used to determine the effect of local weather conditions on the arrival time of TGMs in Massachusetts. @gorgo2007bird in the paper "Why are bird migration dates shifting?" emphasizes the significance of passage weather to bird migration, and indicates that there is a strong correlation between arrical dates and temeperature. In this experiment, we use the GBIF data and compile weather data to expand on this correlation.
+
+## Methods
+
+In order to analyze the GBIF data we will: use a for loop to query GBIFs API (occurence data in MA during April to May from 2000-2019), do logisitcs modeling to predict arrival time, plot the weather data (single day and 2 week averages), and then used linear mixed effect modeling to demonstrate the connection between arrival times and passage weather. An anova test will be done to find the best-fit model. The models made throughout this code develop into a determination of the correlation between weather and arrival dates.
 
 ##Discussion
 
@@ -204,6 +211,7 @@ Anova(best.lmer)
 Sean-
 Hannah-
 Blake-
-Baylie-
+Baylie- Introduction, Methods, Bibliography
 
-##References
+## References
+Biol3140.bib
