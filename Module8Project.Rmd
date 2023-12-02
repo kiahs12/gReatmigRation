@@ -32,12 +32,6 @@ library(knitr)
 library(kableExtra)
 ```
 
-(the 5 birds i chose at random)
-Blue-winged Warbler
-Baltimore Oriole
-Great Crested Flycatcher
-Olive-sided Flycatcher
-Black-billed Cuckoo
 
 ```{r, echo=FALSE, cache=TRUE}
 species <- c("Icterus galbula", "Vermivora cyanoptera", "Myiarchus crinitus", "Contopus cooperi", "Coccyzus erythropthalmus")
@@ -196,11 +190,11 @@ Anova(best.lmer)
 ```
 
 ##Discussion
-
+The trans-gulf migrants that were chosen at random in this experiment were: Blue-winged Warbler, Baltimore Oriole, Great Crested Flycatcher, Olive-sided Flycatcher and the Black-billed Cuckoo. This experiment aimed to examine if climate change is effecting the timing of migration. The data was collected using eBird and NOAA’s NCDC API in order to collect bird and weather data. The arrival time for the species represents when a quarter of all the individuals have arrived in that year. The variables that contribute to slope and intercept are fixed effects such as temperature and wind vector. Species are a random effect since the arrival time varies according to species. Only one day of data did not show any significant relationship between weather and arrival day. The 2 week-long data demonstrates that minimum temperature and wind vector and predictors of arrival time. According to @marra2005influence, “For every 1°C increase in spring temperature, median capture dates of migratory birds averaged, across species, one day earlier.” Our data confirms that changes in temperature predicts the arrival time of migratory birds.  This can be seen through the p-value of the 2 week long temperature minimum and the 2 week long wind vector with a value of less than 0.001 reflecting a statistical significance. According to @jonzen2007bird, scientists believe these migratory birds are exhibiting a “phenotypic plasticity” through being able to adjust their arrival timing to accommodate for the rapidly changing climate.
 
 ##Author Contributions
 Sean- Results
-Hannah-
+Hannah- Discussion
 Blake-
 Baylie- Introduction, Methods, Bibliography
 
