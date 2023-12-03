@@ -33,7 +33,7 @@ library(kableExtra)
 ```
 
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, message=FALSE}
 species <- c("Icterus galbula", "Vermivora cyanoptera", "Myiarchus crinitus", "Contopus cooperi", "Coccyzus erythropthalmus")
 y <- paste0("2000",",","2019")
 m <- paste0("4",",","5")
@@ -59,9 +59,9 @@ dat <- rbindlist(dat.l,fill=T)
 head(dat)
 ```
 
+Above is a for loop that retrieves occurrence data in Massachusetts during the months April and May from the years 2000 to 2019.
 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
 saveRDS(data,"massbird.data.RDS")
 
 dat%>%
@@ -97,8 +97,10 @@ weather.d <- meteo_pull_monitors(sta.d$id,date_min = "2000-01-01")
 head(weather.d)
 
 ```
+The code above incorporates weather data from certain time frames wear the birds migrate through: Alabama, North Carolina, and Massachusetts. See map above.
 
-```{r, echo=FALSE}
+
+```{r, echo=FALSE, message=FALSE}
 #Julian day for when 25% of each species population arrives
 species_count<- dat%>%
   group_by(species, year)%>%
@@ -132,10 +134,10 @@ species_count.arrive.date%>%
 
 ```
 
+Using the occurrence data from the for loop, we model for each year and species and predict their arrival times. Arrival time is calculated when 25% of the population arrives to Massachusetts and its units are in Julian days, or days past after January 1st. These operations were done using logistic modeling.
 
 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
 weather.d <- weather.d%>%
   mutate(year=as.integer(str_sub(date,1,4)), 
          date=as.Date(date))%>%
@@ -150,7 +152,7 @@ weather.d <- weather.d%>%
   mutate(j.day=j.day+migr.day)
 
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
 #mean arrival time
 species_count.arr.weath <- species_count.arrive.date%>%
   left_join(weather.d)%>%
@@ -169,11 +171,11 @@ species_count.arr.weath2 <- species_count.arrive.date%>%
   left_join(weather.wk)
 head(species_count.arr.weath2)
 ```
+Weather data is combined with our occurrence data and mean arrival time is calculated. Single-day and two-week weather averages with the occurrence data are calculated as well as minimum and mamimum temperature  and wind vectors.
 
 
 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
 #linear mixed effect
 species_count.lmer <- lmer(j.day~tmin*tmax*wvec+(1|name),species_count.arr.weath,na.action = "na.fail")
 Anova(species_count.lmer)
@@ -188,7 +190,7 @@ kable_styling(species_count.kb)
 best.lmer <-  lmer(j.day~wk.tmin+wk.tmax+wk.wvec+(1|name),species_count.arr.weath2,na.action = "na.fail")
 Anova(best.lmer)
 ```
-
+Linear effects modeling is used to demonstrate the relationship between weather data and arrival time. Models are tested using the function dredge(), we find the best fitted model with the lowest AICc score, and anova tests are completed for the best fitting model of both data sets. 
 ##Discussion
 The trans-gulf migrants that were chosen at random in this experiment were: Blue-winged Warbler, Baltimore Oriole, Great Crested Flycatcher, Olive-sided Flycatcher and the Black-billed Cuckoo. This experiment aimed to examine if climate change is effecting the timing of migration. The data was collected using eBird and NOAA’s NCDC API in order to collect bird and weather data. The arrival time for the species represents when a quarter of all the individuals have arrived in that year. The variables that contribute to slope and intercept are fixed effects such as temperature and wind vector. Species are a random effect since the arrival time varies according to species. Only one day of data did not show any significant relationship between weather and arrival day. The 2 week-long data demonstrates that minimum temperature and wind vector and predictors of arrival time. According to @marra2005influence, “For every 1°C increase in spring temperature, median capture dates of migratory birds averaged, across species, one day earlier.” Our data confirms that changes in temperature predicts the arrival time of migratory birds.  This can be seen through the p-value of the 2 week long temperature minimum and the 2 week long wind vector with a value of less than 0.001 reflecting a statistical significance. According to @jonzen2007bird, scientists believe these migratory birds are exhibiting a “phenotypic plasticity” through being able to adjust their arrival timing to accommodate for the rapidly changing climate.
 
