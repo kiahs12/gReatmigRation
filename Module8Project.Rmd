@@ -62,8 +62,8 @@ head(dat)
 Above is a for loop that retrieves occurrence data in Massachusetts during the months April and May from the years 2000 to 2019.
 
 ```{r, echo=FALSE, message=FALSE}
-saveRDS(data,"massbird.data.RDS")
-
+saveRDS(dat,"massbird.data.RDS")
+dat<-readRDS("massbird.data.RDS")
 dat%>%
   group_by(year,species)%>%
   summarise(count=sum(individualCount,na.rm = T))%>%
@@ -123,7 +123,7 @@ species_count.pred <- species_count%>%
   left_join(species_count%>%dplyr::select(j.day,date))
 
 species_count%>%
-  ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=mc.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
+  ggplot(aes(j.day,prop))+geom_point(aes=0.3)+geom_line(data=species_count.pred,aes(x=j.day,y=pred),col="blue",size=2)+facet_wrap(year~.)
 
 species_count.arrive.date <-species_count.pred%>%
   group_by(year)%>%
@@ -156,7 +156,7 @@ weather.d <- weather.d%>%
 #mean arrival time
 species_count.arr.weath <- species_count.arrive.date%>%
   left_join(weather.d)%>%
-  left_join(ig%>%dplyr::select(year,date,j.day))
+  left_join(species_count%>%dplyr::select(year,date,j.day))
 head(species_count.arr.weath)
 
 weather.wk <-weather.d %>% 
